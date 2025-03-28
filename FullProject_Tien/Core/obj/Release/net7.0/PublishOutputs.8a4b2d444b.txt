@@ -1,0 +1,3 @@
+D:\fpt\ki_8\prn231\pj\human-resource\fullproject_tien\publish\core\core.dll
+D:\fpt\ki_8\prn231\pj\human-resource\fullproject_tien\publish\core\core.deps.json
+D:\fpt\ki_8\prn231\pj\human-resource\fullproject_tien\publish\core\core.pdb

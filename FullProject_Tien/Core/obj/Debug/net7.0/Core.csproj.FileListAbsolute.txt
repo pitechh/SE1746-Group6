@@ -1,0 +1,12 @@
+D:\FPT\Ki_8\prn231\pj\human-resource\FullProject_Tien\Core\bin\Debug\net7.0\Core.deps.json
+D:\FPT\Ki_8\prn231\pj\human-resource\FullProject_Tien\Core\bin\Debug\net7.0\Core.dll
+D:\FPT\Ki_8\prn231\pj\human-resource\FullProject_Tien\Core\bin\Debug\net7.0\Core.pdb
+D:\FPT\Ki_8\prn231\pj\human-resource\FullProject_Tien\Core\obj\Debug\net7.0\Core.GeneratedMSBuildEditorConfig.editorconfig
+D:\FPT\Ki_8\prn231\pj\human-resource\FullProject_Tien\Core\obj\Debug\net7.0\Core.AssemblyInfoInputs.cache
+D:\FPT\Ki_8\prn231\pj\human-resource\FullProject_Tien\Core\obj\Debug\net7.0\Core.AssemblyInfo.cs
+D:\FPT\Ki_8\prn231\pj\human-resource\FullProject_Tien\Core\obj\Debug\net7.0\Core.csproj.CoreCompileInputs.cache
+D:\FPT\Ki_8\prn231\pj\human-resource\FullProject_Tien\Core\obj\Debug\net7.0\Core.sourcelink.json
+D:\FPT\Ki_8\prn231\pj\human-resource\FullProject_Tien\Core\obj\Debug\net7.0\Core.dll
+D:\FPT\Ki_8\prn231\pj\human-resource\FullProject_Tien\Core\obj\Debug\net7.0\refint\Core.dll
+D:\FPT\Ki_8\prn231\pj\human-resource\FullProject_Tien\Core\obj\Debug\net7.0\Core.pdb
+D:\FPT\Ki_8\prn231\pj\human-resource\FullProject_Tien\Core\obj\Debug\net7.0\ref\Core.dll

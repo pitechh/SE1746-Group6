@@ -1,0 +1,335 @@
+﻿@page "/"
+@using System.Security.Claims
+@inject NavigationManager Navigation
+@inject Microsoft.JSInterop.IJSRuntime JSRuntime
+@using System.Text.Json
+@using Core.Domain.Model
+@using WebAPI.Repo
+@inject AccountRepository _accountRepository
+@inject IAuthenticationService AuthService
+
+<PageTitle>Đăng nhập</PageTitle>
+
+<style>
+    body, html {
+        height: 100%;
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background-color: #fff;
+        color: #000;
+    }
+
+    .form-control {
+        border-radius: 25px;
+        padding: 10px 20px;
+        background-color: #f7f7f7;
+        border: 1px solid #d1d1d1;
+    }
+
+    .btn-signin {
+        background-color: orange;
+        color: white;
+        border-radius: 25px;
+        padding: 10px;
+        width: 100%;
+        margin-top: 20px;
+    }
+
+        .btn-signin:hover {
+            background-color: #333;
+        }
+
+    .forgot-password a, .back-home a {
+        color: #000;
+        text-decoration: none;
+    }
+
+        .forgot-password a:hover, .back-home a:hover {
+            text-decoration: underline;
+        }
+
+    .container-fluid {
+        padding: 0;
+    }
+
+    .left-section {
+        background-color: #f8f9fa;
+    }
+
+    .right-section {
+        padding: 2rem;
+    }
+
+    @@media (max-width: 768px) {
+        .left-section {
+            padding: 20px;
+        }
+
+        .right-section {
+            padding: 20px;
+        }
+    }
+</style>
+
+<div class="container-fluid vh-100 d-flex flex-column flex-lg-row">
+    <div class=" left-section col-12 col-lg-6 d-flex flex-column justify-content-center bg-white p-5">
+        @if ( IsLogin ) {
+            <h3 class="fw-bold text-black-50 mb-4">LOG IN</h3>
+
+            @if ( ErrorMessage != null ) {
+                <div class="alert alert-danger" role="alert">
+                    @ErrorMessage
+                </div>
+            }
+            <form>
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="username" placeholder="Enter your username" @bind="Username">
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="password" placeholder="Enter your password" @bind="Password">
+                </div>
+                <div class="form-check mb-3">
+                    <input type="checkbox" class="form-check-input" id="rememberMe" @bind="RememberMe">
+                    <label class="form-check-label" for="rememberMe">Remember me</label>
+                </div>
+                <button type="button" class="btn btn-signin" @onclick="Login">Sign In</button>
+            </form>
+
+            <p class="text-center mt-3">
+                Don't have an account?
+                <button type="button" class="btn btn-link p-0" @onclick="SwitchToRegister">Register</button>
+            </p>
+        } else {
+            <h3 class="fw-bold mb-4">Create Your Account</h3>
+
+            @if ( ErrorMessage != null ) {
+                <div class="alert alert-danger" role="alert">
+                    @ErrorMessage
+                </div>
+            }
+
+            <form>
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name</label>
+                    <input type="text" class="form-control" id="name" placeholder="Enter your name" @bind="Name">
+                </div>
+                <div class="mb-3">
+                    <label for="manv" class="form-label">Employee ID</label>
+                    <input type="text" class="form-control" id="manv" placeholder="Enter your employee ID" @bind="Manv">
+                </div>
+                <div class="mb-3">
+                    <label for="newpassword" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="newpassword" placeholder="Enter your password" @bind="NewPassword">
+                </div>
+                <button type="button" class="btn btn-signin" @onclick="Register">Register</button>
+            </form>
+
+            <p class="text-center mt-3">
+                Already have an account?
+                <button type="button" class="btn btn-link p-0" @onclick="SwitchToLogin">Login</button>
+            </p>
+        }
+   
+    </div>
+    <div class="right-section col-12 col-lg-6 d-flex flex-column justify-content-center align-items-center text-center p-5">
+        <img src="./css/Image/humanresource.png" alt="Login Illustration" class="img-fluid mb-4" style="max-width: 70%;">
+        <h3 class="fw-bold" style="color:black">Human Resource</h3>
+    </div>
+</div>
+
+@code {
+    private bool IsLogin = true;
+    private string Username { get; set; }
+    private string Password { get; set; }
+    private string Name { get; set; }
+    private string Manv { get; set; }
+    private string NewPassword { get; set; }
+    private string ErrorMessage { get; set; }
+    private bool RememberMe { get; set; }
+    public bool IsAuthenticated = false;
+
+    private Dictionary<string, bool> PlaceholderVisibleStates = new Dictionary<string, bool>()
+{
+        { "username", true },
+        { "password", true },
+        { "name", true },
+        { "manv", true },
+        { "newpassword", true }
+    };
+
+    public string GenerateFiveDigitString()
+    {
+        Random random = new Random();
+        string result = string.Empty;
+
+        for (int i = 0; i < 5; i++)
+        {
+            int randomDigit = random.Next(0, 10); // Generates a random digit between 0 and 9
+            result += randomDigit.ToString(); // Append the digit to the result string
+        }
+
+        return result;
+    }
+
+    [Inject]
+    private HttpClient httpClient { get; set; }
+
+    private async Task Login()
+    {
+        var request = new LoginModel
+            {
+                username = Username,
+                password = Password
+            };
+
+        var response = await httpClient.PostAsJsonAsync ("http://localhost:7099/api/Auth/login", request);
+
+        if (response.IsSuccessStatusCode)
+        {
+            // Authentication successful
+            var content = await response.Content.ReadAsStringAsync();
+            if (content.StartsWith("{"))
+            {
+                var responseObject = JsonSerializer.Deserialize<Dictionary<string, string>>(content);
+                if (responseObject.ContainsKey("message") && responseObject["message"] == "Login successful" && responseObject.ContainsKey("token"))
+                {
+                    Console.WriteLine("Login good");
+                    string token = responseObject["token"];
+                    string encodedToken = System.Net.WebUtility.UrlEncode(token);
+
+                    // Call ValidateToken API to get user information
+                    var validateResponse = await httpClient.GetAsync ($"http://localhost:7099/api/Auth/ValidateToken?token={encodedToken}");
+                    if (validateResponse.IsSuccessStatusCode)
+                    {
+
+                        Console.WriteLine("Token validating");
+                        var validateContent = await validateResponse.Content.ReadAsStringAsync();
+                        var validateObject = JsonSerializer.Deserialize<Dictionary<string, string>>(validateContent);
+                        if (validateObject["message"] == "Token is valid")
+                        {
+                            Console.WriteLine("Token is good");
+                            string username = validateObject["username"];
+                            string role = validateObject["role"];
+
+                            // Set authentication status and user information
+                            AuthService.SetAuthenticated(true, username, role);
+
+                            // Save token in session storage
+                            await SetTokenInSessionStorage(token);
+
+                            // Navigate to home page
+                            Navigation.NavigateTo("/trangchu", true);
+                            return;
+                        }
+                    }
+                }
+                else
+                {
+                    AuthService.SetAuthenticated(false, "", "");
+                    ErrorMessage = "Invalid login data";
+                }
+            }
+            else
+            {
+                AuthService.SetAuthenticated(false, "", "");
+                ErrorMessage = content;
+            }
+        }
+        else
+        {
+            AuthService.SetAuthenticated(false, "", "");
+            ErrorMessage = "An error occurred while processing your request.";
+        }
+    }
+
+    private async Task Register()
+    {
+        var request = new TaiKhoan
+            {
+                TenTaiKhoan = Name,
+                MatKhau = NewPassword,
+                MaNV = Manv,
+                Role = "Cap 6" // Assign appropriate role
+            };
+
+        var response = await httpClient.PostAsJsonAsync ("http://localhost:7099/api/Auth/register", request);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            if (content.StartsWith("{"))
+            {
+                var responseObject = JsonSerializer.Deserialize<Dictionary<string, string>>(content);
+                if (responseObject.ContainsKey("message") && responseObject["message"] == "Registration successful" && responseObject.ContainsKey("token"))
+                {
+                    string token = responseObject["token"];
+                    string encodedToken = System.Net.WebUtility.UrlEncode(token);
+
+                    // Call ValidateToken API to get user information
+                    var validateResponse = await httpClient.GetAsync ($"http://localhost:7099/api/Auth/ValidateToken?token={encodedToken}");
+                    if (validateResponse.IsSuccessStatusCode)
+                    {
+                        var validateContent = await validateResponse.Content.ReadAsStringAsync();
+                        var validateObject = JsonSerializer.Deserialize<Dictionary<string, string>>(validateContent);
+                        if (validateObject["message"] == "Token is valid")
+                        {
+                            string username = validateObject["username"];
+                            string role = validateObject["role"];
+
+                            // Set authentication status and user information
+                            AuthService.SetAuthenticated(true, username, role);
+
+                            // Save token in session storage
+                            await SetTokenInSessionStorage(token);
+                            Name = "";
+                            Manv = "";
+                            NewPassword = "";
+
+                            // Navigate to home page
+                            Navigation.NavigateTo("/trangchu", true);
+                            return;
+                        }
+                    }
+                }
+                else
+                {
+                    AuthService.SetAuthenticated(false, "", "");
+                    ErrorMessage = "Registration invalid";
+                }
+            }
+            else
+            {
+                AuthService.SetAuthenticated(false, "", "");
+                ErrorMessage = content;
+            }
+        }
+        else
+        {
+            AuthService.SetAuthenticated(false, "", "");
+            ErrorMessage = "An error occurred while processing your request.";
+        }
+    }
+
+    private async Task SetTokenInSessionStorage(string token)
+    {
+        // Call JavaScript function to set token in sessionStorage
+        await JSRuntime.InvokeVoidAsync("sessionStorage.setItem", "token", token);
+    }
+
+    private void SwitchToRegister()
+    {
+        IsLogin = false;
+    }
+
+    private void SwitchToLogin()
+    {
+        IsLogin = true;
+    }
+
+    private void TogglePlaceholderVisibility(string fieldId, bool isVisible)
+    {
+        PlaceholderVisibleStates[fieldId] = isVisible;
+    }
+}
